@@ -11,7 +11,11 @@ import java.time.format.DateTimeFormatter;
  * @author Eugene Kononov
  */
 public class LineParser {
-    private static final int COLUMNS = 5;
+    private static final int EXPECTED_COLUMNS = 5;
+    private static final int DATE_TIME_PREFIX_LENGTH = 10;
+    private static final int SECONDS_IN_MINUTE = 60;
+    private static final long MILLIS_PER_SECOND = 1000L;
+    
     private final MarketSnapshotFilter filter;
     private DateTimeFormatter formatter;
     private long previousTime, time;
@@ -32,7 +36,7 @@ public class LineParser {
         if (isMarketData(line)) {
             MarketSnapshot marketSnapshot = toMarketDepth(line);
             previousTime = time;
-            if (filter == null || filter.contains(time * 1000)) {
+            if (filter == null || filter.contains(time * MILLIS_PER_SECOND)) {
                 return marketSnapshot;
             }
         } else if (line.startsWith("timeZone")) {
@@ -47,24 +51,23 @@ public class LineParser {
     private MarketSnapshot toMarketDepth(String line) {
         String[] tokens = line.split(",");
 
-        if (tokens.length != COLUMNS) {
-            String msg = "The line should contain exactly " + COLUMNS + " comma-separated columns.";
+        if (tokens.length != EXPECTED_COLUMNS) {
+            String msg = "The line should contain exactly " + EXPECTED_COLUMNS + " comma-separated columns.";
             msg += "\n" + line;
             throw new RuntimeException(msg);
         }
 
         if (formatter == null) {
-            String msg = "Property " + "\"timeZone\"" + " is not defined in the data file.";
+            String msg = "Property \"timeZone\" is not defined in the data file.";
             throw new RuntimeException(msg);
         }
 
         String dateTime = tokens[0] + tokens[1];
-        String dateTimeWithoutSeconds = dateTime.substring(0, 10);
+        String dateTimeWithoutSeconds = dateTime.substring(0, DATE_TIME_PREFIX_LENGTH);
 
         if (dateTimeWithoutSeconds.equals(previousDateTimeWithoutSeconds)) {
-            // only seconds need to be set
-            int seconds = Integer.parseInt(dateTime.substring(10));
-            long previousSeconds = previousTime % 60;
+            int seconds = Integer.parseInt(dateTime.substring(DATE_TIME_PREFIX_LENGTH));
+            long previousSeconds = previousTime % SECONDS_IN_MINUTE;
             time = previousTime + (seconds - previousSeconds);
         } else {
             ZonedDateTime dt = ZonedDateTime.parse(dateTime, formatter);
@@ -82,10 +85,9 @@ public class LineParser {
         double ask = Double.parseDouble(tokens[3]);
         int volume = Integer.parseInt(tokens[4]);
         if (volume < 0) {
-            String msg = "Volume must be greater or equal to 0.";
-            throw new RuntimeException(msg);
+            throw new RuntimeException("Volume must be greater or equal to 0.");
         }
 
-        return new MarketSnapshot(time * 1000, bid, ask, volume);
+        return new MarketSnapshot(time * MILLIS_PER_SECOND, bid, ask, volume);
     }
 }

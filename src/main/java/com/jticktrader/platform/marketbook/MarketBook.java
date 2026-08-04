@@ -8,8 +8,10 @@ import com.jticktrader.platform.model.Dispatcher;
  * @author Eugene Kononov
  */
 public class MarketBook {
-    private static final long GAP_SIZE = 60 * 60 * 1000;// 1 hour
-    private static final long limitTimeMinutes = 15;// 15 minutes
+    private static final long ONE_HOUR_MILLIS = 60 * 60 * 1000;
+    private static final long LOCK_TIMEOUT_MINUTES = 15;
+    private static final long MILLIS_PER_MINUTE = 1000L * 60L;
+    private static final double MID_PRICE_DIVISOR = 2d;
     private MarketSnapshot marketSnapshot;
     private String contract;
     private double lastMidPrice;
@@ -25,7 +27,7 @@ public class MarketBook {
     }
 
     public boolean isGapping(MarketSnapshot newMarketSnapshot) {
-        return !isEmpty() && (newMarketSnapshot.getTime() - marketSnapshot.getTime() > GAP_SIZE);
+        return !isEmpty() && (newMarketSnapshot.getTime() - marketSnapshot.getTime() > ONE_HOUR_MILLIS);
     }
 
     public MarketSnapshot getSnapshot() {
@@ -33,7 +35,7 @@ public class MarketBook {
     }
 
     public void setSnapshot(MarketSnapshot marketSnapshot) {
-        double midPrice = (marketSnapshot.getBid() + marketSnapshot.getAsk()) / 2d;
+        double midPrice = (marketSnapshot.getBid() + marketSnapshot.getAsk()) / MID_PRICE_DIVISOR;
         long time = marketSnapshot.getTime();
 
         if (midPrice != lastMidPrice) {
@@ -45,8 +47,8 @@ public class MarketBook {
             }
         } else {
             long timeElapsed = time - lastTimePriceChanged;
-            long minutesElapsed = timeElapsed / (1000L * 60L);
-            if (minutesElapsed >= limitTimeMinutes) {
+            long minutesElapsed = timeElapsed / MILLIS_PER_MINUTE;
+            if (minutesElapsed >= LOCK_TIMEOUT_MINUTES) {
                 if (!isLocked) {
                     isLocked = true;
                     Dispatcher.getInstance().getEventReport().report("MarketBook", "market is locked, midprice is " + midPrice);

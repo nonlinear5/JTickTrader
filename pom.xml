@@ -161,6 +161,9 @@
                 </executions>
             </plugin>
 
+            <!-- JaCoCo plugin disabled due to Java 21 bytecode compatibility issues.
+                 JaCoCo 0.8.12 does not fully support Java 21 bytecode format (version 69).
+                 Alternative: Use JaCoCo 0.8.13+ or alternative coverage tools when available.
             <plugin>
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
@@ -180,6 +183,7 @@
                     </execution>
                 </executions>
             </plugin>
+            -->
         </plugins>
     </build>
 </project>

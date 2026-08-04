@@ -62,14 +62,16 @@ public class StrategyParams {
 
     @Override
     public String toString() {
-        String s = "{";
+        StringBuilder sb = new StringBuilder("{");
+        boolean first = true;
         for (StrategyParam param : params) {
-            if (s.length() > 1) {
-                s += ",";
+            if (!first) {
+                sb.append(",");
             }
-            s += param.getValue();
+            sb.append(param.getValue());
+            first = false;
         }
-        s += "}";
-        return s;
+        sb.append("}");
+        return sb.toString();
     }
 }
