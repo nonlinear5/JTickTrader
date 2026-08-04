@@ -1,13 +1,13 @@
 package com.jticktrader.strategy;
 
 import com.jticktrader.platform.optimizer.StrategyParams;
-import com.jticktrader.strategy.mes.MESLongSpecialSize16SimpleLinear4;
+import com.jticktrader.strategy.mes.MESLongSize16SimpleLinear;
 
 
 /**
  * @author Eugene Kononov
  */
-public class MESLongTrueLinearSample extends MESLongSpecialSize16SimpleLinear4 {
+public class MESLongTrueLinearSample extends MESLongSize16SimpleLinear {
     public MESLongTrueLinearSample(StrategyParams optimizationParams) {
         super(optimizationParams);
     }
