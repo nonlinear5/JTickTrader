@@ -38,6 +38,7 @@ replay_pid*
 
 # custom indicators and strategies
 *custom*
+src/main/java/com/jticktrader/strategy/*
 
-# full data set
-ES-full.txt
+# market data files
+marketdata/*
